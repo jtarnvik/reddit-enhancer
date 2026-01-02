@@ -1,22 +1,29 @@
-function removeUnwantedButtons(root: ParentNode): void {
-  root
-    .querySelectorAll("li.crosspost-button, li.report-button, li.share")
-    .forEach((li) => li.remove());
-
-  // kolla om det finns en "sluta spara" knapp, i så fall disable göm, annars enablew
-}
-
-function processThing(thing: HTMLElement): void {
+function removeThingButtons(thing: HTMLElement): void {
   if (thing.dataset.reProcessed === "true") {
     return;
   }
-  removeUnwantedButtons(thing);
+  thing
+    .querySelectorAll("li.crosspost-button, li.report-button, li.share")
+    .forEach((li) => li.remove());
   thing.dataset.reProcessed = "true";
+}
+
+function isSavedThing(thing: HTMLElement): boolean {
+  return thing.classList.contains("saved");
+}
+
+function handleSaveStateChange(thing: HTMLElement): void {
+  const hideLink = thing.querySelector<HTMLAnchorElement>("form.hide-button a");
+  if (!hideLink) {
+    return;
+  }
+
+  hideLink.hidden = isSavedThing(thing);
 }
 
 function handleAddedNode(node: HTMLElement): void {
   if (node.classList.contains("thing")) {
-    processThing(node);
+    removeThingButtons(node);
   }
 
   if (node.classList.contains("hidden-post-placeholder")) {
@@ -26,11 +33,37 @@ function handleAddedNode(node: HTMLElement): void {
 
   node
     .querySelectorAll(".thing")
-    .forEach(el => processThing(el as HTMLElement));
+    .forEach(el => removeThingButtons(el as HTMLElement));
 
   node
     .querySelectorAll(".hidden-post-placeholder")
     .forEach(el => el.remove());
+}
+
+function handleChildListMutation(mutation: MutationRecord): void {
+  Array.from(mutation.addedNodes).forEach((node) => {
+    if (!(node instanceof HTMLElement)) {
+      return;
+    }
+    handleAddedNode(node);
+  });
+}
+
+function handleAttributeMutation(mutation: MutationRecord): void {
+  if (!(mutation.target instanceof HTMLElement)) {
+    return;
+  }
+
+  // We only care about .thing elements
+  const thing = mutation.target.classList.contains("thing")
+    ? mutation.target
+    : mutation.target.closest(".thing");
+
+  if (!thing) {
+    return;
+  }
+
+  handleSaveStateChange(thing as HTMLElement);
 }
 
 function startObserver(): void {
@@ -41,22 +74,19 @@ function startObserver(): void {
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      if (mutation.type !== "childList") {
-        continue;
+      if (mutation.type === "childList") {
+        handleChildListMutation(mutation);
+      } else if (mutation.type === "attributes") {
+        handleAttributeMutation(mutation);
       }
-
-      Array.from(mutation.addedNodes).forEach((node) => {
-        if (!(node instanceof HTMLElement)) {
-          return;
-        }
-        handleAddedNode(node as HTMLElement);
-      });
     }
   });
 
   observer.observe(siteTable, {
     childList: true,
     subtree: true,
+    attributes: true,
+    attributeFilter: ["class"],
   });
 }
 
@@ -67,12 +97,15 @@ function startObserver(): void {
     if (!Dom.isOldReddit()) {
       return;
     }
-    console.log("Old Reddit detected, script active version 13!");
-
+    console.log("Old Reddit detected, script active version 18!");
+                                     
     // Process existing things once
     document
       .querySelectorAll("#siteTable .thing")
-      .forEach((thing) => processThing(thing as HTMLElement));
+      .forEach((thing) => {
+        removeThingButtons(thing as HTMLElement);
+        handleSaveStateChange(thing as HTMLElement);
+      });
     startObserver();
   }
 
