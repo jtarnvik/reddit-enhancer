@@ -2,6 +2,8 @@ function removeUnwantedButtons(root: ParentNode): void {
   root
     .querySelectorAll("li.crosspost-button, li.report-button, li.share")
     .forEach((li) => li.remove());
+
+  // kolla om det finns en "sluta spara" knapp, i så fall disable göm, annars enablew
 }
 
 function processThing(thing: HTMLElement): void {
@@ -30,7 +32,6 @@ function handleAddedNode(node: HTMLElement): void {
     .querySelectorAll(".hidden-post-placeholder")
     .forEach(el => el.remove());
 }
-
 
 function startObserver(): void {
   const siteTable = document.getElementById("siteTable");
