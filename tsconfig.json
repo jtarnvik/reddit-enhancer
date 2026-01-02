@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "none",
+    "outFile": "dist/reddit-enhancer.user.js",
+    "strict": true,
+    "noImplicitAny": true,
+    "removeComments": false,
+    "sourceMap": false,
+    "lib": ["DOM", "ES2020"],
+    "alwaysStrict": false
+  },
+  "include": ["src/**/*.ts"]
+}

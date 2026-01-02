@@ -1,0 +1,20 @@
+{
+  "name": "reddit-enhancer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "serve": "http-server ./dist -p 8080"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/tampermonkey": "^5.0.5",
+    "http-server": "^14.1.1",
+    "typescript": "^5.9.3"
+  }
+}
