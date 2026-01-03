@@ -8,53 +8,59 @@
 // @run-at       document-end
 // @grant        none
 // ==/UserScript==
-var Dom;
-(function (Dom) {
+var SiteQuery;
+(function (SiteQuery) {
     function isOldReddit() {
         return document.getElementById("siteTable") !== null;
     }
-    Dom.isOldReddit = isOldReddit;
-})(Dom || (Dom = {}));
-function removeThingButtons(thing) {
-    if (thing.dataset.reProcessed === "true") {
-        return;
+    SiteQuery.isOldReddit = isOldReddit;
+})(SiteQuery || (SiteQuery = {}));
+var ThingChanges;
+(function (ThingChanges) {
+    function removeThingButtons(thing) {
+        if (thing.dataset.reProcessed === "true") {
+            return;
+        }
+        thing
+            .querySelectorAll("li.crosspost-button, li.report-button, li.share")
+            .forEach((li) => li.remove());
+        thing.dataset.reProcessed = "true";
     }
-    thing
-        .querySelectorAll("li.crosspost-button, li.report-button, li.share")
-        .forEach((li) => li.remove());
-    thing.dataset.reProcessed = "true";
-}
-function isSavedThing(thing) {
-    return thing.classList.contains("saved");
-}
-function handleSaveStateChange(thing) {
-    const hideLink = thing.querySelector("form.hide-button a");
-    if (!hideLink) {
-        return;
+    ThingChanges.removeThingButtons = removeThingButtons;
+    function isSavedThing(thing) {
+        return thing.classList.contains("saved");
     }
-    hideLink.hidden = isSavedThing(thing);
-}
-function handleAddedNode(node) {
-    if (node.classList.contains("thing")) {
-        removeThingButtons(node);
+    function handleSaveStateChange(thing) {
+        const hideLink = thing.querySelector("form.hide-button a");
+        if (!hideLink) {
+            return;
+        }
+        hideLink.hidden = isSavedThing(thing);
     }
-    if (node.classList.contains("hidden-post-placeholder")) {
-        node.remove();
-        return;
+    ThingChanges.handleSaveStateChange = handleSaveStateChange;
+    function handleAddedNode(node) {
+        if (node.classList.contains("thing")) {
+            removeThingButtons(node);
+        }
+        if (node.classList.contains("hidden-post-placeholder")) {
+            node.remove();
+            return;
+        }
+        node
+            .querySelectorAll(".thing")
+            .forEach(el => removeThingButtons(el));
+        node
+            .querySelectorAll(".hidden-post-placeholder")
+            .forEach(el => el.remove());
     }
-    node
-        .querySelectorAll(".thing")
-        .forEach(el => removeThingButtons(el));
-    node
-        .querySelectorAll(".hidden-post-placeholder")
-        .forEach(el => el.remove());
-}
+    ThingChanges.handleAddedNode = handleAddedNode;
+})(ThingChanges || (ThingChanges = {}));
 function handleChildListMutation(mutation) {
     Array.from(mutation.addedNodes).forEach((node) => {
         if (!(node instanceof HTMLElement)) {
             return;
         }
-        handleAddedNode(node);
+        ThingChanges.handleAddedNode(node);
     });
 }
 function handleAttributeMutation(mutation) {
@@ -68,7 +74,7 @@ function handleAttributeMutation(mutation) {
     if (!thing) {
         return;
     }
-    handleSaveStateChange(thing);
+    ThingChanges.handleSaveStateChange(thing);
 }
 function startObserver() {
     const siteTable = document.getElementById("siteTable");
@@ -95,16 +101,16 @@ function startObserver() {
 (function () {
     "use strict";
     function init() {
-        if (!Dom.isOldReddit()) {
+        if (!SiteQuery.isOldReddit()) {
             return;
         }
-        console.log("Old Reddit detected, script active version 18!");
+        console.log("Old Reddit detected, script active version 20!");
         // Process existing things once
         document
             .querySelectorAll("#siteTable .thing")
             .forEach((thing) => {
-            removeThingButtons(thing);
-            handleSaveStateChange(thing);
+            ThingChanges.removeThingButtons(thing);
+            ThingChanges.handleSaveStateChange(thing);
         });
         startObserver();
     }
