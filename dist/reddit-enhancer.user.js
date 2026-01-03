@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Reddit Enhancer (DEV)
-// @namespace    https://example.com/reddit-enhancer
-// @version      0.1.0
-// @description  Experimental Reddit enhancements for old Reddit
+// @name         Reddit Enhancer
+// @namespace    https://tarnvik.com/reddit-enhancer
+// @version      1.34.0
+// @description  Enhancements for old Reddit, a few features with inspiration from https://redditenhancementsuite.com/
 // @match        https://old.reddit.com/*
 // @match        https://www.reddit.com/*
 // @run-at       document-end
