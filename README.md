@@ -1,11 +1,14 @@
 # reddit-enhancer - A simple Safari RES variant.
 
-A user script for Safari which can be added using e.g. Tampermonkey.
+This script adds a few features to old.reddit.com. These features are created with inspiration from RES,
+having read none of the code, but after many years of heavy use.
 
-This script has limited functionality and so far does only has these features:
+The script can be installed with [Tampermonkey](https://www.tampermonkey.net/), and probably other user script engines which I've never heard of.
+
+This script has a these features:
 - Adds inifinate scroll.
 - When a item is hidden, it removes the placeholder.
 - Removes the cross-post, share and report buttons.
 
 ## Mostly for Safari
-On chrome RES is several orders of magnitude better.
+On Chrome [RES](https://redditenhancementsuite.com/) has several orders of magnitude more features, so you should probably use that.
