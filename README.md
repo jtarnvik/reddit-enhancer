@@ -9,6 +9,7 @@ This script has a these features:
 - Adds inifinate scroll.
 - When a item is hidden, it removes the placeholder.
 - Removes the cross-post, share and report buttons.
+- Removes tooltip for authors. I dont find them usefule, and sometimes they stick sround for to long.
 
 ## Mostly for Safari
 On Chrome [RES](https://redditenhancementsuite.com/) has several orders of magnitude more features, so you should probably use that.

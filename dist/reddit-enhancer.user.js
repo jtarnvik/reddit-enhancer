@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Enhancer
 // @namespace    https://tarnvik.com/reddit-enhancer
-// @version      1.34.0
+// @version      1.36.0
 // @description  Enhancements for old Reddit, a few features with inspiration from https://redditenhancementsuite.com/
 // @match        https://old.reddit.com/*
 // @match        https://www.reddit.com/*
@@ -241,12 +241,42 @@ var InfiniteScroll;
     }
     InfiniteScroll.setupInfiniteScroll = setupInfiniteScroll;
 })(InfiniteScroll || (InfiniteScroll = {}));
+var PreviewFactory;
+(function (PreviewFactory) {
+    class Factory {
+        constructor() {
+            this.handlers = [];
+        }
+        name() {
+            return "PreviewFactory";
+        }
+        registerMediaHandler(handler) {
+            console.log(`Registered media handler: ${handler.name()}`);
+            this.handlers.push(handler);
+        }
+        canHandle(node) {
+            return this.handlers.some(handler => handler.canHandle(node));
+        }
+        adjustWithREPreview(thing) {
+            if (!this.canHandle(thing)) {
+                return false;
+            }
+            this.handlers.find(handler => handler.canHandle(thing))?.adjustWithREPreview(thing);
+            return true;
+        }
+    }
+    PreviewFactory.Factory = Factory;
+    PreviewFactory.factory = new Factory();
+})(PreviewFactory || (PreviewFactory = {}));
 function handleChildListMutation(mutation) {
     Array.from(mutation.addedNodes).forEach((node) => {
         if (!(node instanceof HTMLElement)) {
             return;
         }
         ThingChanges.handleAddedNode(node);
+        if (PreviewFactory.factory.canHandle(node)) {
+            PreviewFactory.factory.adjustWithREPreview(node);
+        }
     });
 }
 function handleAttributeMutation(mutation) {
@@ -284,21 +314,40 @@ function startObserver() {
         attributeFilter: ["class"],
     });
 }
+function disableUserHoverPreviews() {
+    const style = document.createElement("style");
+    style.textContent = `
+    .hover, 
+    .hovercard, 
+    .user-hover,
+    .author-tooltip {
+      display: none !important;
+    }
+  `;
+    document.head.appendChild(style);
+}
 (function () {
     "use strict";
     function init() {
         if (!SiteQuery.isOldReddit()) {
             return;
         }
-        console.log("Old Reddit detected, script active. Version 34!");
+        console.log("Old Reddit detected, script active. Version 1.36.0!");
         // Process existing things once
         document
             .querySelectorAll("#siteTable .thing")
             .forEach((thing) => {
+            if (!(thing instanceof HTMLElement)) {
+                return;
+            }
             ThingChanges.removeThingButtons(thing);
             ThingChanges.handleSaveStateChange(thing);
+            if (PreviewFactory.factory.canHandle(thing)) {
+                PreviewFactory.factory.adjustWithREPreview(thing);
+            }
         });
         startObserver();
+        disableUserHoverPreviews();
         // Infinite scroll setup
         InfiniteScroll.injectStyles();
         InfiniteScroll.initPaginationState();

@@ -1,10 +1,12 @@
-
 function handleChildListMutation(mutation: MutationRecord): void {
   Array.from(mutation.addedNodes).forEach((node) => {
     if (!(node instanceof HTMLElement)) {
       return;
     }
     ThingChanges.handleAddedNode(node);
+    if (PreviewFactory.factory.canHandle(node)) {
+      PreviewFactory.factory.adjustWithREPreview(node);
+    }
   });
 }
 
@@ -49,6 +51,19 @@ function startObserver(): void {
   });
 }
 
+function disableUserHoverPreviews(): void {
+  const style = document.createElement("style");
+  style.textContent = `
+    .hover, 
+    .hovercard, 
+    .user-hover,
+    .author-tooltip {
+      display: none !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 (function () {
   "use strict";
 
@@ -56,16 +71,24 @@ function startObserver(): void {
     if (!SiteQuery.isOldReddit()) {
       return;
     }
-    console.log("Old Reddit detected, script active. Version 34!");
+    console.log("Old Reddit detected, script active. Version 1.36.0!");
 
     // Process existing things once
     document
       .querySelectorAll("#siteTable .thing")
       .forEach((thing) => {
-        ThingChanges.removeThingButtons(thing as HTMLElement);
-        ThingChanges.handleSaveStateChange(thing as HTMLElement);
+        if (!(thing instanceof HTMLElement)) {
+          return;
+        }
+        ThingChanges.removeThingButtons(thing);
+        ThingChanges.handleSaveStateChange(thing);
+        if (PreviewFactory.factory.canHandle(thing)) {
+          PreviewFactory.factory.adjustWithREPreview(thing);
+        }
       });
     startObserver();
+
+    disableUserHoverPreviews();
 
     // Infinite scroll setup
     InfiniteScroll.injectStyles();
