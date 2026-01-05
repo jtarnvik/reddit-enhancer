@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Enhancer
 // @namespace    https://tarnvik.com/reddit-enhancer
-// @version      1.38.0
+// @version      1.39.0
 // @description  Enhancements for old Reddit, a few features with inspiration from https://redditenhancementsuite.com/
 // @match        https://old.reddit.com/*
 // @match        https://www.reddit.com/*

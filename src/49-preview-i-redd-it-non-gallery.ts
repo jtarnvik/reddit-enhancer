@@ -36,8 +36,11 @@ namespace PreviewIReddItNonGallery {
 
     const img = document.createElement("img");
     img.src = link.href;
-    img.style.maxWidth = "100%";
-
+    // img.style.maxWidth = "100%";
+    img.style.maxWidth = "800px";
+    img.style.maxHeight = "800px";
+    img.style.height = "auto";
+    
     box.appendChild(img);
     button.textContent = "▼ Hide";
   }
