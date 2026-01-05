@@ -1,13 +1,21 @@
-function handleChildListMutation(mutation: MutationRecord): void {
-  Array.from(mutation.addedNodes).forEach((node) => {
-    if (!(node instanceof HTMLElement)) {
-      return;
-    }
-    ThingChanges.handleAddedNode(node);
-    if (PreviewFactory.factory.canHandle(node)) {
-      PreviewFactory.factory.adjustWithREPreview(node);
-    }
+function handleChildListMutation(mutations: MutationRecord[]): void {
+  if (!mutations || mutations.length === 0) {
+    return;
+  }
+
+  const adjustPreview: HTMLElement[] = [];
+  mutations.forEach(mutation => {
+    Array.from(mutation.addedNodes).forEach((node) => {
+      if (!(node instanceof HTMLElement)) {
+        return;
+      }
+      ThingChanges.handleAddedNode(node);
+      adjustPreview.push(node);
+    })
   });
+  if (adjustPreview.length !== 0) {
+    PreviewFactory.factory.adjustPreview(adjustPreview);
+  }
 }
 
 function handleAttributeMutation(mutation: MutationRecord): void {
@@ -34,13 +42,16 @@ function startObserver(): void {
   }
 
   const observer = new MutationObserver((mutations) => {
+    console.log("--Mutation observed");
+    const childMutations: MutationRecord[] = [];
     for (const mutation of mutations) {
       if (mutation.type === "childList") {
-        handleChildListMutation(mutation);
+        childMutations.push(mutation);
       } else if (mutation.type === "attributes") {
         handleAttributeMutation(mutation);
       }
     }
+    handleChildListMutation(childMutations);
   });
 
   observer.observe(siteTable, {
@@ -54,7 +65,6 @@ function startObserver(): void {
 function disableUserHoverPreviews(): void {
   const style = document.createElement("style");
   style.textContent = `
-    .hover, 
     .hovercard, 
     .user-hover,
     .author-tooltip {
@@ -71,21 +81,22 @@ function disableUserHoverPreviews(): void {
     if (!SiteQuery.isOldReddit()) {
       return;
     }
-    console.log("Old Reddit detected, script active. Version 1.36.0!");
+    console.log("Old Reddit detected, script active. Version 1.38.0!");
 
     // Process existing things once
-    document
-      .querySelectorAll("#siteTable .thing")
-      .forEach((thing) => {
-        if (!(thing instanceof HTMLElement)) {
-          return;
-        }
-        ThingChanges.removeThingButtons(thing);
-        ThingChanges.handleSaveStateChange(thing);
-        if (PreviewFactory.factory.canHandle(thing)) {
-          PreviewFactory.factory.adjustWithREPreview(thing);
-        }
-      });
+    const things = document
+      .querySelectorAll("#siteTable .thing");
+
+    const adjustPreview: HTMLElement[] = [];
+    things.forEach((thing) => {
+      if (!(thing instanceof HTMLElement)) {
+        return;
+      }
+      ThingChanges.removeThingButtons(thing);
+      ThingChanges.handleSaveStateChange(thing);
+      adjustPreview.push(thing);
+    });
+    PreviewFactory.factory.adjustPreview(adjustPreview);
     startObserver();
 
     disableUserHoverPreviews();

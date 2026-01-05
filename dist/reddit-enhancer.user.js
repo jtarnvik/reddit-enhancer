@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Enhancer
 // @namespace    https://tarnvik.com/reddit-enhancer
-// @version      1.36.0
+// @version      1.38.0
 // @description  Enhancements for old Reddit, a few features with inspiration from https://redditenhancementsuite.com/
 // @match        https://old.reddit.com/*
 // @match        https://www.reddit.com/*
@@ -243,6 +243,48 @@ var InfiniteScroll;
 })(InfiniteScroll || (InfiniteScroll = {}));
 var PreviewFactory;
 (function (PreviewFactory) {
+    function logElementsThings(str, things) {
+        const ids = things.map(thing => thing.getAttribute("data-fullname"));
+        console.log(`${str}: Found ${ids.length} elements: ${ids.join(", ")}`);
+    }
+    class ByHandler {
+        constructor(mediaHandler) {
+            this.nodes = [];
+            this.mediaHandler = mediaHandler;
+        }
+        get handler() {
+            return this.mediaHandler;
+        }
+        addNode(node) {
+            this.nodes.push(node);
+        }
+        adjustPreview() {
+            logElementsThings("Adjusting preview", this.nodes);
+            const previewInfo = this.mediaHandler.createPreviewInfo(this.nodes);
+            this.nodes.forEach(node => this.mediaHandler.adjustWithREPreview(node, previewInfo));
+        }
+    }
+    PreviewFactory.ByHandler = ByHandler;
+    class SortedByHandler {
+        constructor() {
+            this.byHandler = [];
+        }
+        addNode(node, handler) {
+            for (const itm of this.byHandler) {
+                if (handler === itm.handler) {
+                    itm.addNode(node);
+                    return;
+                }
+            }
+            const itm = new ByHandler(handler);
+            itm.addNode(node);
+            this.byHandler.push(itm);
+        }
+        adjustPreview() {
+            this.byHandler.forEach(itm => itm.adjustPreview());
+        }
+    }
+    PreviewFactory.SortedByHandler = SortedByHandler;
     class Factory {
         constructor() {
             this.handlers = [];
@@ -254,30 +296,108 @@ var PreviewFactory;
             console.log(`Registered media handler: ${handler.name()}`);
             this.handlers.push(handler);
         }
-        canHandle(node) {
-            return this.handlers.some(handler => handler.canHandle(node));
-        }
-        adjustWithREPreview(thing) {
-            if (!this.canHandle(thing)) {
-                return false;
-            }
-            this.handlers.find(handler => handler.canHandle(thing))?.adjustWithREPreview(thing);
-            return true;
+        adjustPreview(things) {
+            const sortedByHandler = new SortedByHandler();
+            things.forEach(thing => {
+                if (!thing.classList.contains("thing")) {
+                    return;
+                }
+                for (const handler of this.handlers) {
+                    if (handler.canHandle(thing)) {
+                        sortedByHandler.addNode(thing, handler);
+                        break;
+                    }
+                }
+            });
+            sortedByHandler.adjustPreview();
         }
     }
     PreviewFactory.Factory = Factory;
     PreviewFactory.factory = new Factory();
 })(PreviewFactory || (PreviewFactory = {}));
-function handleChildListMutation(mutation) {
-    Array.from(mutation.addedNodes).forEach((node) => {
-        if (!(node instanceof HTMLElement)) {
+var PreviewIReddItNonGallery;
+(function (PreviewIReddItNonGallery) {
+    function suppressRedditExpando(thing) {
+        thing
+            .querySelectorAll(".expando-button")
+            .forEach(el => el.remove());
+    }
+    function getExpandoBox(thing) {
+        let box = thing.querySelector(".re-expando-box");
+        if (box)
+            return box;
+        box = document.createElement("div");
+        box.className = "re-expando-box";
+        box.style.marginTop = "8px";
+        const entry = thing.querySelector(".entry");
+        entry?.appendChild(box);
+        return box;
+    }
+    function toggleRedditImagePreview(thing, button) {
+        const box = getExpandoBox(thing);
+        if (box.childElementCount > 0) {
+            box.innerHTML = "";
+            button.textContent = "▶ Preview";
             return;
         }
-        ThingChanges.handleAddedNode(node);
-        if (PreviewFactory.factory.canHandle(node)) {
-            PreviewFactory.factory.adjustWithREPreview(node);
+        const link = thing.querySelector("a.title");
+        if (!link)
+            return;
+        const img = document.createElement("img");
+        img.src = link.href;
+        img.style.maxWidth = "100%";
+        box.appendChild(img);
+        button.textContent = "▼ Hide";
+    }
+    function addPreviewButton(thing) {
+        if (thing.querySelector(".re-expando-button"))
+            return;
+        const button = document.createElement("button");
+        button.className = "re-expando-button";
+        button.textContent = "▶ Preview";
+        button.addEventListener("click", () => toggleRedditImagePreview(thing, button));
+        const buttons = thing.querySelector(".entry .buttons");
+        buttons?.prepend(button);
+    }
+    class Preview {
+        adjustWithREPreview(thing, previewInfo) {
+            console.log("Adjusting i.redd.it non-gallery post");
+            suppressRedditExpando(thing);
+            getExpandoBox(thing);
+            addPreviewButton(thing);
         }
+        canHandle(node) {
+            return (node.dataset.domain === "i.redd.it" &&
+                node.dataset.isGallery === "false");
+        }
+        name() {
+            return "PreviewIReddItNonGallery";
+        }
+        createPreviewInfo(things) {
+            console.log("Method not implemented.");
+            return null;
+        }
+    }
+    PreviewIReddItNonGallery.Preview = Preview;
+    PreviewFactory.factory.registerMediaHandler(new Preview());
+})(PreviewIReddItNonGallery || (PreviewIReddItNonGallery = {}));
+function handleChildListMutation(mutations) {
+    if (!mutations || mutations.length === 0) {
+        return;
+    }
+    const adjustPreview = [];
+    mutations.forEach(mutation => {
+        Array.from(mutation.addedNodes).forEach((node) => {
+            if (!(node instanceof HTMLElement)) {
+                return;
+            }
+            ThingChanges.handleAddedNode(node);
+            adjustPreview.push(node);
+        });
     });
+    if (adjustPreview.length !== 0) {
+        PreviewFactory.factory.adjustPreview(adjustPreview);
+    }
 }
 function handleAttributeMutation(mutation) {
     if (!(mutation.target instanceof HTMLElement)) {
@@ -298,14 +418,17 @@ function startObserver() {
         return;
     }
     const observer = new MutationObserver((mutations) => {
+        console.log("--Mutation observed");
+        const childMutations = [];
         for (const mutation of mutations) {
             if (mutation.type === "childList") {
-                handleChildListMutation(mutation);
+                childMutations.push(mutation);
             }
             else if (mutation.type === "attributes") {
                 handleAttributeMutation(mutation);
             }
         }
+        handleChildListMutation(childMutations);
     });
     observer.observe(siteTable, {
         childList: true,
@@ -317,7 +440,6 @@ function startObserver() {
 function disableUserHoverPreviews() {
     const style = document.createElement("style");
     style.textContent = `
-    .hover, 
     .hovercard, 
     .user-hover,
     .author-tooltip {
@@ -332,20 +454,20 @@ function disableUserHoverPreviews() {
         if (!SiteQuery.isOldReddit()) {
             return;
         }
-        console.log("Old Reddit detected, script active. Version 1.36.0!");
+        console.log("Old Reddit detected, script active. Version 1.38.0!");
         // Process existing things once
-        document
-            .querySelectorAll("#siteTable .thing")
-            .forEach((thing) => {
+        const things = document
+            .querySelectorAll("#siteTable .thing");
+        const adjustPreview = [];
+        things.forEach((thing) => {
             if (!(thing instanceof HTMLElement)) {
                 return;
             }
             ThingChanges.removeThingButtons(thing);
             ThingChanges.handleSaveStateChange(thing);
-            if (PreviewFactory.factory.canHandle(thing)) {
-                PreviewFactory.factory.adjustWithREPreview(thing);
-            }
+            adjustPreview.push(thing);
         });
+        PreviewFactory.factory.adjustPreview(adjustPreview);
         startObserver();
         disableUserHoverPreviews();
         // Infinite scroll setup
