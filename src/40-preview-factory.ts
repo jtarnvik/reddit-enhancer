@@ -3,6 +3,8 @@ namespace PreviewFactory {
   }
 
   export interface MediaHandler {
+    init(): void;
+
     name(): string;
 
     canHandle(node: HTMLElement): boolean;
@@ -73,6 +75,7 @@ namespace PreviewFactory {
 
     registerMediaHandler(handler: MediaHandler) {
       console.log(`Registered media handler: ${handler.name()}`);
+      handler.init();
       this.handlers.push(handler);
     }
 
