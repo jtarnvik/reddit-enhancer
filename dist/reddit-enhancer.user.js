@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Enhancer
 // @namespace    https://tarnvik.com/reddit-enhancer
-// @version      1.40.0
+// @version      1.41.0
 // @description  Enhancements for old Reddit, a few features with inspiration from https://redditenhancementsuite.com/
 // @match        https://old.reddit.com/*
 // @match        https://www.reddit.com/*
@@ -51,6 +51,10 @@ var HelperFunctions;
 var ThingChanges;
 (function (ThingChanges) {
     function removeThingButtons(thing) {
+        if (thing.classList.contains("promoted") || thing.dataset.promoted === "true") {
+            thing.remove();
+            return;
+        }
         if (thing.dataset.reProcessed === "true") {
             return;
         }
@@ -567,7 +571,7 @@ function disableUserHoverPreviews() {
         if (!SiteQuery.isOldReddit()) {
             return;
         }
-        console.log("Old Reddit detected, script active. Version 1.40.0!");
+        console.log("Old Reddit detected, script active. Version 1.41.0!");
         // Process existing things once
         const things = document
             .querySelectorAll("#siteTable .thing");

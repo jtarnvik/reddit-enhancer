@@ -1,5 +1,10 @@
 namespace ThingChanges {
   export function removeThingButtons(thing: HTMLElement): void {
+    if (thing.classList.contains("promoted") || thing.dataset.promoted === "true") {
+      thing.remove();
+      return;
+    }
+
     if (thing.dataset.reProcessed === "true") {
       return;
     }
