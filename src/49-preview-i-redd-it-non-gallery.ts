@@ -11,7 +11,6 @@ namespace PreviewIReddItNonGallery {
 
     box = document.createElement("div");
     box.className = "re-expando-box";
-    box.style.marginTop = "8px";
 
     const entry = thing.querySelector(".entry");
     entry?.appendChild(box);
@@ -27,6 +26,7 @@ namespace PreviewIReddItNonGallery {
 
     if (box.childElementCount > 0) {
       box.innerHTML = "";
+      box.style.marginTop = "0px";
       button.textContent = "▶ Preview";
       return;
     }
@@ -42,6 +42,8 @@ namespace PreviewIReddItNonGallery {
     img.style.height = "auto";
     
     box.appendChild(img);
+    box.style.marginTop = "8px";
+
     button.textContent = "▼ Hide";
   }
 
