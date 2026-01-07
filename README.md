@@ -10,10 +10,14 @@ This script has a these features:
 - When a item is hidden, it removes the placeholder.
 - Removes the cross-post, share and report buttons.
 - Removes tooltip for authors. I dont find them usefule, and sometimes they stick sround for to long.
+- Adds a "Download" button for all images.
 
 ## Mostly for Safari
 On Chrome [RES](https://redditenhancementsuite.com/) has several orders of magnitude more features, so you should probably use that.
-
+          
+## Script header
+This scriptheader can be used when developing.
+```javascript
 // ==UserScript==
 // @name         Reddit Enhancer v1
 // @namespace    https://example.com/reddit-enhancer
@@ -25,3 +29,4 @@ On Chrome [RES](https://redditenhancementsuite.com/) has several orders of magni
 // @grant        GM_xmlhttpRequest
 // @require      http://localhost:8080/reddit-enhancer.user.js
 // ==/UserScript==
+```

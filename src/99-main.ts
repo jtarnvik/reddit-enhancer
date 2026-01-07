@@ -42,7 +42,6 @@ function startObserver(): void {
   }
 
   const observer = new MutationObserver((mutations) => {
-    console.log("--Mutation observed");
     const childMutations: MutationRecord[] = [];
     for (const mutation of mutations) {
       if (mutation.type === "childList") {
@@ -81,7 +80,7 @@ function disableUserHoverPreviews(): void {
     if (!SiteQuery.isOldReddit()) {
       return;
     }
-    console.log("Old Reddit detected, script active. Version 1.41.0!");
+    console.log("Old Reddit detected, script active. Version 1.43.0!");
 
     // Process existing things once
     const things = document
