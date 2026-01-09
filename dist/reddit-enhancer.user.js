@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Reddit Enhancer
 // @namespace    https://tarnvik.com/reddit-enhancer
-// @version      1.45.0
+// @version      1.47.0
 // @description  Enhancements for old Reddit, a few features with inspiration from https://redditenhancementsuite.com/
 // @match        https://old.reddit.com/*
 // @match        https://www.reddit.com/*
@@ -401,7 +401,8 @@ var PreviewIReddItNonGallery;
         img.style.maxWidth = "800px";
         img.style.maxHeight = "800px";
         img.style.height = "auto";
-        img.style.display = "block";
+        // Causes issues with the image preview.
+        // img.style.display = "block";
         const title = thing.querySelector("a.title")?.textContent ??
             "reddit-image";
         const download = document.createElement("a");
@@ -414,21 +415,23 @@ var PreviewIReddItNonGallery;
         });
         wrapper.appendChild(download);
         wrapper.appendChild(img);
-        if (description && description.trim().length > 0) {
-            const descEl = document.createElement("div");
-            // Maybe move this to the style segment below.
-            descEl.className = "re-image-description";
-            descEl.textContent = description;
-            descEl.style.padding = "6px";
-            descEl.style.backgroundColor = "#f0f3fc";
-            descEl.style.color = "#7f7f7f";
-            descEl.style.borderColor = "#c7c7c7";
-            descEl.style.borderWidth = "1px";
-            descEl.style.borderRadius = "6px";
-            descEl.style.borderStyle = "solid";
-            descEl.style.borderColor = "#369";
-            wrapper.appendChild(descEl);
-        }
+        // Causes issues with the image preview.
+        // if (description && description.trim().length > 0) {
+        //   const descEl = document.createElement("div");
+        //   // Maybe move this to the style segment below.
+        //   descEl.className = "re-image-description";
+        //   descEl.textContent = description;
+        //   descEl.style.padding = "6px";
+        //   descEl.style.backgroundColor = "#f0f3fc";
+        //   descEl.style.color = "#7f7f7f";
+        //   descEl.style.borderColor = "#c7c7c7";
+        //
+        //   descEl.style.borderWidth = "1px";
+        //   descEl.style.borderRadius = "6px";
+        //   descEl.style.borderStyle = "solid";
+        //   descEl.style.borderColor = "#369";
+        //   wrapper.appendChild(descEl);
+        // }
         return wrapper;
     }
     async function toggleRedditImagePreview(thing, button, localPreview) {
@@ -472,9 +475,13 @@ var PreviewIReddItNonGallery;
         style.textContent = `
     .re-image-wrapper {
       position: relative;
-      display: flex;
-      flex-direction: column;
-      width: min-content;
+      display: inline-block;
+      
+      // Causes issues with the image preview.
+      // margin: 8px 0;
+      // display: flex;
+      // flex-direction: column;
+      // width: min-content;
     }
 
     .re-download-button {
@@ -643,7 +650,7 @@ function disableUserHoverPreviews() {
         if (!SiteQuery.isOldReddit()) {
             return;
         }
-        console.log("Old Reddit detected, script active. Version 1.45.0!");
+        console.log("Old Reddit detected, script active. Version 1.47.0!");
         // Process existing things once
         const things = document
             .querySelectorAll("#siteTable .thing");
