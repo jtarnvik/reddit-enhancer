@@ -80,7 +80,7 @@ function disableUserHoverPreviews(): void {
     if (!SiteQuery.isOldReddit()) {
       return;
     }
-    console.log("Old Reddit detected, script active. Version 1.45.0!");
+    console.log("Old Reddit detected, script active. Version 1.48.0!");
 
     // Process existing things once
     const things = document

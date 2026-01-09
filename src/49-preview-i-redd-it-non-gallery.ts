@@ -14,7 +14,9 @@ namespace PreviewIReddItNonGallery {
 
   function getExpandoBox(thing: HTMLElement): HTMLElement {
     let box = thing.querySelector(".re-expando-box") as HTMLElement;
-    if (box) return box;
+    if (box) {
+      return box;
+    }
 
     box = document.createElement("div");
     box.className = "re-expando-box";
@@ -60,14 +62,7 @@ namespace PreviewIReddItNonGallery {
 
     const img = document.createElement("img");
     img.src = imgUrl;
-    img.style.maxWidth = "800px";
-    img.style.maxHeight = "800px";
-    img.style.height = "auto";
-    img.style.display = "block";
-
-    const title =
-      thing.querySelector<HTMLAnchorElement>("a.title")?.textContent ??
-      "reddit-image";
+    const title = thing.querySelector<HTMLAnchorElement>("a.title")?.textContent ?? "reddit-image";
 
     const download = document.createElement("a");
     download.className = "re-download-button";
@@ -87,15 +82,6 @@ namespace PreviewIReddItNonGallery {
       // Maybe move this to the style segment below.
       descEl.className = "re-image-description";
       descEl.textContent = description;
-      descEl.style.padding = "6px";
-      descEl.style.backgroundColor = "#f0f3fc";
-      descEl.style.color = "#7f7f7f";
-      descEl.style.borderColor = "#c7c7c7";
-
-      descEl.style.borderWidth = "1px";
-      descEl.style.borderRadius = "6px";
-      descEl.style.borderStyle = "solid";
-      descEl.style.borderColor = "#369";
       wrapper.appendChild(descEl);
     }
 
@@ -125,17 +111,21 @@ namespace PreviewIReddItNonGallery {
     }
 
     const link = thing.querySelector<HTMLAnchorElement>("a.title");
-    if (!link) return;
+    if (!link) {
+      return;
+    }
 
     const imgWithDownload = createImageWithDownload(thing, link.href, description ?? "");
     box.appendChild(imgWithDownload);
-
     box.style.marginTop = "8px";
+
     button.textContent = "▼ Hide";
   }
 
   function addPreviewButton(thing: HTMLElement, localPreview: LocalPreviewInfo): void {
-    if (thing.querySelector(".re-expando-button")) return;
+    if (thing.querySelector(".re-expando-button")) {
+      return;
+    }
 
     const button = document.createElement("button");
     button.className = "re-expando-button";
@@ -157,12 +147,39 @@ namespace PreviewIReddItNonGallery {
     const style = document.createElement("style");
     style.id = "re-preview-styles";
     style.textContent = `
-    .re-image-wrapper {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      width: min-content;
-    }
+      .re-image-wrapper {
+        display: inline-block;
+        position: relative;
+        margin: 8px 0;
+        max-width: 800px;
+      }
+      .re-image-wrapper:hover .re-download-button {
+        opacity: 1;
+      }
+      
+      .re-image-wrapper img {
+        display: block;
+        max-width: 100%;
+        max-height: 800px;
+        height: auto;
+      }
+      
+      .re-image-description {
+        margin-top: 8px;
+        padding: 6px;
+        font-size: 13px;
+        line-height: 1.4;
+        color: #555;
+      
+        background: #f0f3fc;
+        border: 1px solid #369;
+        border-radius: 6px;
+      
+        width: 100%;
+        box-sizing: border-box;
+        
+        white-space: pre-line;
+      }
 
     .re-download-button {
       position: absolute;
@@ -179,18 +196,6 @@ namespace PreviewIReddItNonGallery {
       transition: opacity 0.15s ease;
     }
 
-    .re-image-wrapper:hover .re-download-button {
-      opacity: 1;
-    }
-
-    .re-image-description {
-          font-size: 13px;
-          margin-top: 8px;
-          color: #555;
-          word-wrap: break-word;
-          line-height: 1.4;
-        }
-        
     /* Disable old.reddit "last-clicked" border */
     .thing.last-clicked {
       border: none !important;
