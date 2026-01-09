@@ -52,7 +52,8 @@ namespace PreviewIReddItNonGallery {
 
   function createImageWithDownload(
     thing: HTMLElement,
-    imgUrl: string
+    imgUrl: string,
+    description: string
   ): HTMLElement {
     const wrapper = document.createElement("div");
     wrapper.className = "re-image-wrapper";
@@ -62,6 +63,7 @@ namespace PreviewIReddItNonGallery {
     img.style.maxWidth = "800px";
     img.style.maxHeight = "800px";
     img.style.height = "auto";
+    img.style.display = "block";
 
     const title =
       thing.querySelector<HTMLAnchorElement>("a.title")?.textContent ??
@@ -80,6 +82,23 @@ namespace PreviewIReddItNonGallery {
     wrapper.appendChild(download);
     wrapper.appendChild(img);
 
+    if (description && description.trim().length > 0) {
+      const descEl = document.createElement("div");
+      // Maybe move this to the style segment below.
+      descEl.className = "re-image-description";
+      descEl.textContent = description;
+      descEl.style.padding = "6px";
+      descEl.style.backgroundColor = "#f0f3fc";
+      descEl.style.color = "#7f7f7f";
+      descEl.style.borderColor = "#c7c7c7";
+
+      descEl.style.borderWidth = "1px";
+      descEl.style.borderRadius = "6px";
+      descEl.style.borderStyle = "solid";
+      descEl.style.borderColor = "#369";
+      wrapper.appendChild(descEl);
+    }
+
     return wrapper;
   }
 
@@ -97,11 +116,7 @@ namespace PreviewIReddItNonGallery {
       post?.selftext ??
       post?.title;
 
-    console.log( "description", description);
-    // continue by presenting this!
-
     const box = getExpandoBox(thing);
-
     if (box.childElementCount > 0) {
       box.innerHTML = "";
       box.style.marginTop = "0px";
@@ -112,7 +127,7 @@ namespace PreviewIReddItNonGallery {
     const link = thing.querySelector<HTMLAnchorElement>("a.title");
     if (!link) return;
 
-    const imgWithDownload = createImageWithDownload(thing, link.href);
+    const imgWithDownload = createImageWithDownload(thing, link.href, description ?? "");
     box.appendChild(imgWithDownload);
 
     box.style.marginTop = "8px";
@@ -144,7 +159,9 @@ namespace PreviewIReddItNonGallery {
     style.textContent = `
     .re-image-wrapper {
       position: relative;
-      display: inline-block;
+      display: flex;
+      flex-direction: column;
+      width: min-content;
     }
 
     .re-download-button {
@@ -165,6 +182,19 @@ namespace PreviewIReddItNonGallery {
     .re-image-wrapper:hover .re-download-button {
       opacity: 1;
     }
+
+    .re-image-description {
+          font-size: 13px;
+          margin-top: 8px;
+          color: #555;
+          word-wrap: break-word;
+          line-height: 1.4;
+        }
+        
+    /* Disable old.reddit "last-clicked" border */
+    .thing.last-clicked {
+      border: none !important;
+    }        
   `;
     document.head.appendChild(style);
   }

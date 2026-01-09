@@ -27,6 +27,8 @@ This scriptheader can be used when developing.
 // @match        https://www.reddit.com/*
 // @run-at       document-end
 // @grant        GM_xmlhttpRequest
+// @connect      reddit.com
+// @connect      i.redd.it
 // @require      http://localhost:8080/reddit-enhancer.user.js
 // ==/UserScript==
 ```

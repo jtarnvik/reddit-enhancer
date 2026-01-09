@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         Reddit Enhancer
 // @namespace    https://tarnvik.com/reddit-enhancer
-// @version      1.43.0
+// @version      1.45.0
 // @description  Enhancements for old Reddit, a few features with inspiration from https://redditenhancementsuite.com/
 // @match        https://old.reddit.com/*
 // @match        https://www.reddit.com/*
 // @run-at       document-end
 // @grant        GM_xmlhttpRequest
+// @connect      reddit.com
+// @connect      i.redd.it
 // ==/UserScript==
 var SiteQuery;
 (function (SiteQuery) {
@@ -391,7 +393,7 @@ var PreviewIReddItNonGallery;
             }
         });
     }
-    function createImageWithDownload(thing, imgUrl) {
+    function createImageWithDownload(thing, imgUrl, description) {
         const wrapper = document.createElement("div");
         wrapper.className = "re-image-wrapper";
         const img = document.createElement("img");
@@ -399,6 +401,7 @@ var PreviewIReddItNonGallery;
         img.style.maxWidth = "800px";
         img.style.maxHeight = "800px";
         img.style.height = "auto";
+        img.style.display = "block";
         const title = thing.querySelector("a.title")?.textContent ??
             "reddit-image";
         const download = document.createElement("a");
@@ -411,6 +414,21 @@ var PreviewIReddItNonGallery;
         });
         wrapper.appendChild(download);
         wrapper.appendChild(img);
+        if (description && description.trim().length > 0) {
+            const descEl = document.createElement("div");
+            // Maybe move this to the style segment below.
+            descEl.className = "re-image-description";
+            descEl.textContent = description;
+            descEl.style.padding = "6px";
+            descEl.style.backgroundColor = "#f0f3fc";
+            descEl.style.color = "#7f7f7f";
+            descEl.style.borderColor = "#c7c7c7";
+            descEl.style.borderWidth = "1px";
+            descEl.style.borderRadius = "6px";
+            descEl.style.borderStyle = "solid";
+            descEl.style.borderColor = "#369";
+            wrapper.appendChild(descEl);
+        }
         return wrapper;
     }
     async function toggleRedditImagePreview(thing, button, localPreview) {
@@ -420,8 +438,6 @@ var PreviewIReddItNonGallery;
             post?.media_metadata?.[Object.keys(post.media_metadata ?? {})[0]]?.caption ??
             post?.selftext ??
             post?.title;
-        console.log("description", description);
-        // continue by presenting this!
         const box = getExpandoBox(thing);
         if (box.childElementCount > 0) {
             box.innerHTML = "";
@@ -432,7 +448,7 @@ var PreviewIReddItNonGallery;
         const link = thing.querySelector("a.title");
         if (!link)
             return;
-        const imgWithDownload = createImageWithDownload(thing, link.href);
+        const imgWithDownload = createImageWithDownload(thing, link.href, description ?? "");
         box.appendChild(imgWithDownload);
         box.style.marginTop = "8px";
         button.textContent = "▼ Hide";
@@ -456,7 +472,9 @@ var PreviewIReddItNonGallery;
         style.textContent = `
     .re-image-wrapper {
       position: relative;
-      display: inline-block;
+      display: flex;
+      flex-direction: column;
+      width: min-content;
     }
 
     .re-download-button {
@@ -477,6 +495,19 @@ var PreviewIReddItNonGallery;
     .re-image-wrapper:hover .re-download-button {
       opacity: 1;
     }
+
+    .re-image-description {
+          font-size: 13px;
+          margin-top: 8px;
+          color: #555;
+          word-wrap: break-word;
+          line-height: 1.4;
+        }
+        
+    /* Disable old.reddit "last-clicked" border */
+    .thing.last-clicked {
+      border: none !important;
+    }        
   `;
         document.head.appendChild(style);
     }
@@ -612,7 +643,7 @@ function disableUserHoverPreviews() {
         if (!SiteQuery.isOldReddit()) {
             return;
         }
-        console.log("Old Reddit detected, script active. Version 1.43.0!");
+        console.log("Old Reddit detected, script active. Version 1.45.0!");
         // Process existing things once
         const things = document
             .querySelectorAll("#siteTable .thing");
